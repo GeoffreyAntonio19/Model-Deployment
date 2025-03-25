@@ -8,9 +8,9 @@ def load_model(filename):
     return joblib.load(filename)
 
 def predict_with_model(model, user_input):
-    prediction = model.predict([user_input])
-    prediction_proba = model.predict_proba([user_input])
-    return prediction[0], prediction_proba
+    prediction_proba = model.predict_proba([user_input])[0]
+    prediction = np.argmax(prediction_proba)  # Get the index of the highest probability
+    return prediction, prediction_proba
 
 def main():
     st.title('Dermatology Machine Learning')
@@ -43,7 +43,9 @@ def main():
     st.success(str(dermatology_classes[prediction]))
     
     # Display prediction probabilities
-    df_prediction_proba = pd.DataFrame(prediction_proba, columns=dermatology_classes)
+    df_prediction_proba = pd.DataFrame([prediction_proba], columns=dermatology_classes)
+    df_prediction_proba = df_prediction_proba.T.rename(columns={0: "Probability"}).sort_values(by="Probability", ascending=False)
+    
     st.subheader('Prediction Probabilities')
     st.dataframe(df_prediction_proba.style.format('{:.4f}'))
 
