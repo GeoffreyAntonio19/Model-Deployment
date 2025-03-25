@@ -1,68 +1,51 @@
 import streamlit as st
 import joblib
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 
 def load_model(filename):
-  model = joblib.load(filename)
-  return model
+    return joblib.load(filename)
 
 def predict_with_model(model, user_input):
-  prediction = model.predict([user_input])
-  return prediction[0]
+    prediction = model.predict([user_input])
+    prediction_proba = model.predict_proba([user_input])
+    return prediction[0], prediction_proba
 
 def main():
-  st.title('Dermatology Machine Learning')
-  st.write('This app using Machine Learning')
+    st.title('Dermatology Machine Learning')
+    st.write('This app uses Machine Learning to predict dermatological conditions.')
 
-  # input data by user
-  erythema = st.slider('Erythema', min_value = 0, max_value = 3, value = 2)
-  scaling = st.slider('Scaling', min_value = 0, max_value = 3, value = 2)
-  definite_borders = st.slider('Definite Borders', min_value = 0, max_value = 3, value = 2)
-  itching = st.slider('Itching', min_value = 0, max_value = 3, value = 0)
-  koebner_phenomenon = st.slider('koebner_phenomenon', min_value = 0, max_value = 3, value = 0)
-  polygonal_papules = st.slider('Polygonal Papules', min_value = 0, max_value = 3, value = 0)
-  follicular_papules = st.slider('Follicular Papules', min_value = 0, max_value = 3, value = 0)
-  oral_mucosal_involvement = st.slider('Oral Mucosal Involvement', min_value = 0, max_value = 3, value = 0)
-  knee_and_elbow_involvement = st.slider('Knee and Elbow Involvement', min_value = 0, max_value = 3, value = 0)
-  scalp_involvement = st.slider('Scalp Involvement', min_value = 0, max_value = 3, value = 0)
-  family_history = st.slider('Family History', min_value = 0, max_value = 1, value = 0)
-  melanin_incontinence = st.slider('Melanin Incontinence', min_value = 0, max_value = 3, value = 0)
-  eosinophils_infiltrate = st.slider('Eosinophils Infiltrate', min_value = 0, max_value = 2, value = 0)
-  PNL_infiltrate = st.slider('PNL Infiltrate', min_value = 0, max_value = 3, value = 0)
-  fibrosis_papillary_dermis = st.slider('Fibrosis Papillary Dermis', min_value = 0, max_value = 3, value = 0)
-  exocytosis = st.slider('Exocytosis', min_value = 0, max_value = 3, value = 2)
-  acanthosis = st.slider('Acanthosis', min_value = 0, max_value = 3, value = 2)
-  hyperkeratosis = st.slider('Hyperkeratosis', min_value = 0, max_value = 3, value = 0)
-  parakeratosis = st.slider('Parakeratosis', min_value = 0, max_value = 3, value = 2)
-  clubbing_rete_ridges = st.slider('Clubbing Rete Ridges', min_value = 0, max_value = 3, value = 0)
-  elongation_rete_ridges = st.slider('Elongation Rete Ridges', min_value = 0, max_value = 3, value = 0)
-  thinning_suprapapillary_epidermis = st.slider('Thinning Suprapapillary Epidermis', min_value = 0, max_value = 3, value = 0)
-  spongiform_pustule = st.slider('Spongiform Pustule', min_value = 0, max_value = 3, value = 0)
-  munro_microabcess = st.slider('Munro Microabcess', min_value = 0, max_value = 3, value = 0)
-  focal_hypergranulosis = st.slider('Focal Hypergranulosis', min_value = 0, max_value = 3, value = 0)
-  disappearance_granular_layer = st.slider('disappearance_granular_layer', min_value = 0, max_value = 3, value = 0)
-  vacuolisation_damage_basal_layer = st.slider('vacuolisation damage basal layer', min_value = 0, max_value = 3, value = 0)
-  spongiosis = st.slider('Spongiosis', min_value = 0, max_value = 3, value = 0)
-  saw_tooth_appearance_retes = st.slider('saw tooth appearance retes', min_value = 0, max_value = 3, value = 0)
-  follicular_horn_plug = st.slider('follicular horn plug', min_value = 0, max_value = 3, value = 0)
-  perifollicular_parakeratosis = st.slider('perifollicular parakeratosis', min_value = 0, max_value = 3, value = 0)
-  inflammatory_mononuclear_infiltrate = st.slider('inflammatory mononuclear infiltrate', min_value = 0, max_value = 3, value = 2)
-  band_like_infiltrate = st.slider('band like infiltrate', min_value = 0, max_value = 3, value = 0)
-  age = st.slider('age', min_value = 0, max_value = 75, value = 40)
-  test = st.selectbox('Gender', ('Male', 'Female'))
-  
-  # Input Data for Program
-  user_input = [erythema, scaling, definite_borders, itching, koebner_phenomenon, polygonal_papules, follicular_papules, oral_mucosal_involvement,
-                knee_and_elbow_involvement, scalp_involvement, family_history, melanin_incontinence, eosinophils_infiltrate, PNL_infiltrate,
-                fibrosis_papillary_dermis, exocytosis, acanthosis, hyperkeratosis, parakeratosis, clubbing_rete_ridges, elongation_rete_ridges,
-               thinning_suprapapillary_epidermis, spongiform_pustule, munro_microabcess, focal_hypergranulosis, disappearance_granular_layer,
-               vacuolisation_damage_basal_layer, spongiosis, saw_tooth_appearance_retes, follicular_horn_plug, perifollicular_parakeratosis,
-               inflammatory_mononuclear_infiltrate, band_like_infiltrate, age]
-
-  model_filename = 'trained_model.pkl'
-  model = load_model(model_filename)
-  prediction = predict_with_model(model, user_input)
-  st.write('The prediction output is: ', prediction)
+    # User input sliders
+    features = [
+        'Erythema', 'Scaling', 'Definite Borders', 'Itching', 'Koebner Phenomenon', 'Polygonal Papules',
+        'Follicular Papules', 'Oral Mucosal Involvement', 'Knee and Elbow Involvement', 'Scalp Involvement',
+        'Family History', 'Melanin Incontinence', 'Eosinophils Infiltrate', 'PNL Infiltrate',
+        'Fibrosis Papillary Dermis', 'Exocytosis', 'Acanthosis', 'Hyperkeratosis', 'Parakeratosis',
+        'Clubbing Rete Ridges', 'Elongation Rete Ridges', 'Thinning Suprapapillary Epidermis',
+        'Spongiform Pustule', 'Munro Microabcess', 'Focal Hypergranulosis', 'Disappearance Granular Layer',
+        'Vacuolisation Damage Basal Layer', 'Spongiosis', 'Saw Tooth Appearance Retes',
+        'Follicular Horn Plug', 'Perifollicular Parakeratosis', 'Inflammatory Mononuclear Infiltrate',
+        'Band Like Infiltrate', 'Age'
+    ]
+    
+    user_input = [st.slider(feature, min_value=0, max_value=3, value=1) for feature in features[:-1]]
+    user_input.append(st.slider('Age', min_value=0, max_value=75, value=40))
+    
+    model_filename = 'trained_model.pkl'
+    model = load_model(model_filename)
+    prediction, prediction_proba = predict_with_model(model, user_input)
+    
+    # Display prediction
+    st.subheader('Predicted Condition')
+    dermatology_classes = np.array(['Psoriasis', 'Seborrheic Dermatitis', 'Lichen Planus',
+                                    'Pityriasis Rosea', 'Chronic Dermatitis', 'Pityriasis Rubra Pilaris'])
+    st.success(str(dermatology_classes[prediction]))
+    
+    # Display prediction probabilities
+    df_prediction_proba = pd.DataFrame(prediction_proba, columns=dermatology_classes)
+    st.subheader('Prediction Probabilities')
+    st.dataframe(df_prediction_proba.style.format('{:.4f}'))
 
 if __name__ == "__main__":
-  main()
-  
+    main()
